@@ -1,0 +1,55 @@
+\section{Concepts}
+
+A spatial object can be a point, a line, a polygon, or any other shape in the real coordinate space of \(d\) dimensions \(\mathbb{R}^d\). Using set theory, a spatial object in \(\mathbb{R}^d\) can be considered a potentially infinite set of points \(X\) such that \(X \subseteq \mathbb{R}^d\).
+
+Set operations have geometric interpretations. As an example, given two spatial objects \(X\) and \(Y\), \(X \cap Y\) is a spatial object consisting of the space covered by both objects, which is the intersection of the two objects.
+
+A spatial pedicate is a relation between spatial objects. For instance, spatial objects \(U\) and \(V\), \(U\) and \(V\) are said to intersect if \(U \cap V \neq \emptyset\), and \(U\) is said to cover \(V\) if \(V - U = \emptyset\). Spatial predicates may have properties that are useful for processing spatial queries. For instance, any object that covers an object \(U\) that intersects with an object \(V\) must also intersect with \(V\).
+
+An axis aligned box is a spatial object in the form of a box where the edges of the box are parallel to the coordinate axes. An axis aligned box is defined by two points \(B = (b, t)\) where
+\[
+  \forall_{i \in \{1, \ell, d\}} :
+  b^{[i]} \leq t^{[i]}
+\]
+where \(p^{[i]}\) denotes the \(i^{th}\) coordinate of the point \(p\).
+The axis aligned box contains points so that for each dimension \(i\), \(b^{[i]}\) is the minimum coordinate and \(t^{[i]}\) is the maximum coordinate. That is,
+\[
+  B = \{
+    q \in \mathbb{R}^d \mid
+    \forall_{i \in \{ 1, \ell, d \}} :
+    b^{[i]} \leq q^{[i]} \leq t^{[i]}
+  \}
+\]
+
+The axis aligned Minimum Bounding Box (MBB) of a spatial object \(X\) is the axis aligned box with the smallest measure that covers \(X\). Depending on the dimensionality of the space, the measure of a spatial object can be the length, area, volume or hypervolume of the object. Axis aligned MBBs are commonly used to approximate the locations of spatial objects and can be used as a simple descriptor of its shape.
+
+It follows that that \(X \subseteq B\), which implies that any spatial object that intersects with \(X\) must also intersect with \(B\). For complex geometry, this has practical applications to speed up computations for spatial operations.
+
+The axis aligned MBB of a spatial object \(X\) can be represented as \(B = (b, t)\) where
+\[
+  b^{[i]} = \min\left( q^{[i]} \mid q \in X \right)
+  ,
+  t^{[i]} = \max\left( q^{[i]} \mid q \in X \right).
+\]
+
+\section{Spatial distance join queries}
+
+The goal of indexing is to improve the efficiency of searching. For spatial indexing, our goal is to improve the efficiency of processing spatial queries.
+
+The spatial distance join returns pairs of objects that are close to each other. More formally, given two sets of spatial objects \(R\) and \(S\) and a distance threshold \(\epsilon\), the spatial distance join returns
+\[
+  \{ (r, s) \in R \times S \mid dist(r, s) \leq \epsilon \}
+\]
+where \(dist\) is a distance measure between spatial objects such as the euclidean distance between points.
+
+\(dist(r, s) \leq \epsilon\) is a type of spatial predicate. For \(\epsilon = 0\) it is equivalent to intersection. Using the max distance 
+
+\section{R-trees}
+
+The R-tree~\cite{guttman1984r} can be considered a multidimensional version of the B-tree. The keys in the R-tree are spatial objects which can be spatially queried.
+
+Conceptually, the R-tree partitions the space of its keys into a hierarchy of MBBs where keys are placed at the bottom. Each MBB in the hierarchy consists of the MBB of its children. MBBs at the same level in the hierarchy may overlap with each other.
+
+The R-tree is a tree structure. Records are placed in the leaf nodes, each containing linking to a data object along with the MBB of the data object. Inner nodes contain similar records, except they link to lower level nodes instead of data objects. For entries of all nodes, the MBBs are always the MBB of whatever the entry points to.
+
+Values are inserted into leaf nodes. To keep the tree balanced and to minimize the size of nodes, all nodes except the root node must have between \(m\) and \(N\) entries where \(m \leq \frac{N}{2}\). The root node can have \(0\) to \(N\) entries. If inserting an value into a leaf node would result in more than N entries, the node has to be split into two leaf nodes. The split nodes have to be placed in the parent node, which may result in another split. The split can propagate to the root, in which case the root also must be split, and another level has to be added.

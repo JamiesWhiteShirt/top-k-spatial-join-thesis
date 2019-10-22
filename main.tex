@@ -1,0 +1,107 @@
+% TODO: Use twoside for printing
+\documentclass[12pt]{report}
+% English hyphenation
+\usepackage[english]{babel}
+% Use UTF-8 encoding
+\usepackage[utf8]{inputenc}
+% Better support for accented characters
+\usepackage[T1]{fontenc}
+% References
+\usepackage{biblatex}
+\addbibresource{references.bib}
+% For quotes
+\usepackage{csquotes}
+% For cross references
+\usepackage{hyperref}
+% Graphics
+\usepackage{graphicx}
+\graphicspath{{images/}}
+% A4 paper size with reasonable margins
+% TODO: Modify bindingoffset for two-sided printing
+\usepackage[a4paper,width=150mm,top=25mm,bottom=25mm,bindingoffset=6mm]{geometry}
+% Fancy headers
+\usepackage{fancyhdr}
+% Make the headers fancy by default
+% To clear headers, use \pagestyle{empty} followed by \pagestyle{fancy} to get the headers back
+\pagestyle{fancy}
+\setlength{\headheight}{15pt}
+% Beautiful IBM Plex font families
+%\usepackage{plex-serif}
+\usepackage{plex-sans}
+\usepackage{plex-mono}
+% Text coloring
+\usepackage{color}
+% Math blocks
+\usepackage{amsmath}
+% Math symbols
+\usepackage{amssymb}
+
+\newcommand{\com}[1]{{\color{red}#1}} % supervisor comment
+
+\begin{document}
+
+\begin{titlepage}
+    \sffamily
+    \setlength{\parindent}{0pt}
+    \includegraphics[width=0.4\textwidth]{ntnu}
+
+    \vspace*{2cm}
+
+    \Huge
+    \textbf{Top-k Spatial Join on GPU}
+
+    \vspace{0.5cm}
+    \LARGE
+    % TODO: Remove this before submission
+    DRAFT, \today
+
+    \vspace{1.5cm}
+
+    \textbf{Erlend Åmdal}
+
+    \vfill
+
+    \large
+    Supervisor: Kjetil Nørvåg, IDI
+
+    \vspace{1.5cm}
+    Norwegian University of Science and Technology\\
+    Department of Computer Science
+\end{titlepage}
+
+\chapter*{Abstract}
+Given two sets of spatial objects \(R\) and \(S\) where each object is assigned a score, a spatial join predicate (such as a distance threshold \(\epsilon\)), and an aggregate function that combines scores for two objects (such as a simple sum), the top-k spatial join operation joins \(R\) and \(S\) by the spatial predicate and returns the \(k\) pairs with the best scores according to the aggregate function. % chktex 21
+
+Graphics processors are becoming commodity hardware, and their massively parallel processing capabilities can be used to achieve high performance. It has been shown that some spatial queries can be sped up significantly with GPGPU, but little research has been made into processing top-k spatial joins (and top-k queries in general) with graphics processors.
+
+This project will attempt to uncover the feasibility of processing top-k spatial joins on GPU\@. Contributions have been made for efficient processing of top-k spatial joins in CPU environments as well as spatial joins in GPU environments. However, few contributions have been made specifically for processing top-k spatial joins on GPUs.
+
+\chapter*{Acknowledgements}
+I wish to thank my supervisor Kjetil Nørvåg for taking the time to review this draft.
+
+\tableofcontents
+% Not particularly useful right now
+% TODO: Add this
+% \listoffigures
+
+\chapter{Introduction}
+\input{chapters/introduction}
+
+\chapter{General-purpose computing on graphics processors}
+\input{chapters/gpgpu}
+
+\chapter{Spatial Indexing}
+\input{chapters/spatial_indexing}
+
+\chapter{Top-k spatial join}
+
+%\chapter{Conclusion}
+%\input{chapters/conclusion}
+
+%\appendix
+%\chapter{Example appendix}
+%\input{chapters/appendix}
+
+\printbibliography{}
+
+\end{document}
