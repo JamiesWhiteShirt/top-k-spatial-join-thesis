@@ -1,6 +1,16 @@
 Ranked queries are queries concerned with the ranking of objects. With ranked queries, inputs and outputs may be objects that are ordered by a scoring function.
 
-\section{Score functions}
+\section{Concepts}
+
+Given a set of objects \(R\), a top-k query returns an ordered set of \(k\) objects of \(R\) with the greatest ranking. The ranking is defined by a scoring function \(q\) that assigns a score to each object in \(R\). All elements in the result set \(T\) must have a score greater than or equal to the score of the elements that are not in the result set. More formally,
+
+\[
+  \forall_{r \in T}
+  \forall_{s \in R - T} :
+  \left(q(r) \geq q(s) \right).
+\]
+
+Given two sets of objects \(R\) and \(S\), the top-k join returns an ordered set of \(k\) join results with the greatest ranking. It is a special case of the top-k query that operates on the results of a join. Join results are \((r, s)\) tuples of \(R \times S\) that satisfy a join predicate \(\phi\). The ranking is similarly defined by a score function \(q\) that assigns a score to each tuple of the join result. All elements in the result must have a score greater than or equal to the score of the elements that are not in the result set.
 
 A score function assigns a score to each object in a set to define a ranking. The score may be an aggregation of multiple object score attributes \(a_1, a_2, a_3, \dotsc\) by an aggregate function \(\gamma\). For instance, if \(\gamma\) is SUM, the score of an object is the sum of the score attributes of the object. \(\gamma\) is considered a monotone aggregate function if
 \[
@@ -17,51 +27,35 @@ A score function assigns a score to each object in a set to define a ranking. Th
 \]
 SUM, MAX and MIN are all examples of monotone aggregate functions.
 
-Using monotone aggregate functions for scores, assertions can be made to speed up the evaluation of ranked queries. A key insight that is that if the aggregate function is monotone, given sets of attribute values \(A_1\) and \(A_2\), the aggregation of the maximum element of \(A_1\) and the maximum element of \(A_2\) forms an upper bound for the aggregation of all combinations of elements of \(A_1\) and \(A_2\). More formally, given sets \(A_1\) and \(A_2\),
+Using monotone aggregate functions for scores, assertions can be made to speed up the evaluation of ranked queries. A key insight that is that if the score is a monotone aggregation of attributes \(a_1\) and \(a_2\), the aggregation of the maximum value of \(a_1\) and the maximum value of \(a_2\) for a set of elements forms an upper bound for the score of all elements in the set. More formally, given a set of elements \(R\) with attributes \(a_1\) and \(a_2\),
 \[
-  \forall a_1 \in A_1, a_2 \in A_2 :
-  \gamma(a_1, a_2)
+  \forall r \in R :
+  \gamma(r.a_1, r.a_2)
   \leq
-  \gamma(\max(A_1), \max(A_2))
+  \gamma(\max(s.a_1 \mid s \in R), \max(s.a_2 \mid s \in R))
 \]
-where \(\max(A_1)\) and \(\max(A_2)\) are the maximum elements of their respective sets. The upper bound of an aggregation can be used to efficiently prune subsets in ranked queries.
+where \(\max(s.a_1 \mid s \in R)\) and \(\max(s.a_2 \mid \in R)\) are the maximum values of \(a_1\) and \(a_2\) for \(R\). If it can be asserted that all elements in a result must have a score greater than \(s_{\min}\), then knowing the maximum value of each attribute for a set of elements is enough to determine if any elements in the set can be part of the result by comparing the upper bound with \(s_{\min}\). If the elements of the set cannot be part of the result, there would be no need to evaluate each element for inclusion in the result by computing the score and comparing it with \(s_{\min}\).
 
-\section{Top-k queries}
+For top-k joins, the join inputs \(R\) and \(S\) may be individually ranked by score functions \(q_R\) and \(q_S\) respectively. The scores assigned by \(q_R\) and \(q_S\) can be considered as attributes of each joined tuple. Then the score of a joined tuple can be an aggregation of the scores assigned by \(q_R\) and \(q_S\). In this case, the score of a joined tuple would be \(q(r, s) = \gamma(q_R(r), q_S(s))\) where \(\gamma\) is an aggregate function.
 
-Given a set of objects \(R\), a top-k query returns an ordered set of \(k\) objects of \(R\) with the greatest ranking. The ranking is defined by a scoring function \(q\) that assigns a score to each object in \(R\). All elements in the result set \(T\) must have a score greater than or equal to the score of the elements that are not in the result set. More formally,
-
-\[
-  \forall_{r \in T}
-  \forall_{s \in R - T} :
-  \left(q(r) \geq q(s) \right).
-\]
-
-Fagin et al.~\cite{fagin2003optimal} evaluated various methods for performing top-k queries for aggregation of ranked inputs by monotone aggregate functions.
-
-\subsection{Ranked range search on MAX aR-trees}
-
-Spatial queries may be augmented to require rank-based filtering or sorting of results. A basic method to achieve this would be a two-step process --- performing the spatial query first, then filtering or sorting the outputs second. However, the R-tree range search algorithm can be modified to efficiently achieve both rank-based filtering and sorting in a single step. The modified algorithm operates on a MAX aR-tree, so that each node contains the maximum score value of any object contained by the node. The MAX aggregate function has properties that allows both for filtering and sorting of query outputs using a modified range search algorithm.
-
-The R-tree range search algorithm can be modified to only output objects with a score greater than some value \(s_{\min}\) by adding an additional condition to prune subtrees. The modification is based on the principle that any aR-tree node with MAX score lower than \(s_{\min}\) can be pruned from the search because the subtree cannot contain any entries that satisfy the rank condition. This is the same principle that allows pruning subtrees from the search for not intersecting with the query box because the subtree cannot contain any entries that intersect with the query box.
-
-The R-tree range search algorithm can be modified to output results in order of descending rank by dequeuing queue elements in order of descending upper score bound. The modification is based on the principle that in the queue of a range search, the highest ranked R-tree entry that has not yet been visited must be found via the highest ranked queue entry. Queue entries are ranked by the MAX score for inner node entries, and actual score for leaf node entries. The highest ranked unvisited R-tree entry can be found in the queue either as an ancestor of an inner node with the greatest MAX score, or as the leaf node entry with the greatest score. By always dequeuing the highest ranked queue entry, queue entries are processed in best-first order which guarantees that leaf entries will be visited in descending rank order.
-
-\section{Top-k joins}
-
-Given two sets of objects \(R\) and \(S\), the top-k join returns an ordered set of \(k\) join results with the greatest ranking. It is a special case of the top-k query that operates on results of a join query. Join results are tuples of \(R \times S\) that satisfy a join predicate \(\phi\). The ranking is similarly defined by a score function \(q\) that assigns a score to each tuple of the join result. All elements in the result must have a score greater than or equal to the score of the elements that are not in the result set.
-
-\[
-  J = \{(r, s) \in R \times S \mid \phi(r, s)\}
-\]
-
-The join inputs \(R\) and \(S\) may be individually ranked by score functions \(q_R\) and \(q_S\) respectively so that the score of a joined tuple is an aggregation of the two scores is \(q(r, s) = \gamma(q_R(r), q_S(s))\) where \(\gamma\) is an aggregate function. If the aggregate function is monotone, then the score of the pair of each highest ranked element in ranked sets \(R\) and \(S\) forms an upper bound for the score of all pairs in \(R \times S\). More formally, given ranked sets \(R\) and \(S\),
+For top-k joins where the score is a monotone aggregation of scores, the aggregation of the score of each highest ranked element in ranked sets \(R\) and \(S\) forms an upper bound for the score of all pairs in \(R \times S\). More formally, given ranked sets \(R\) and \(S\),
 \[
   \forall (r, s) \in R \times S :
   \gamma(q_R(r), q_S(s))
   \leq
   \gamma(q_R(R_{\max}), q_S(S_{\max}))
 \]
-where \(R_{\max}\) and \(S_{\max}\) are the highest ranked elements of their respective sets.
+where \(R_{\max}\) and \(S_{\max}\) are the highest ranked elements of their respective sets. If it can be asserted that all elements in a join result must have a score greater than \(s_{\min}\), then knowing the maximum scores of \(R\) and \(S\) is enough to determine if any joined elements of \(R\) and \(S\) can be part of the join result. If the results of the join cannot be part of the result, there would be no need to evaluate each element of the join for inclusion in the result by computing the score and comparing it with \(s_{\min}\). More importantly, there would be no need to perform a join at all.
+
+\section{Ranked range search}
+
+Spatial queries may be augmented to require rank-based filtering or sorting of results. A basic method to achieve this would be a two-step process of performing the spatial query first, then filtering or sorting the outputs second. However, the R-tree range search algorithm can be modified to efficiently achieve both rank-based filtering and sorting in a single step. The modified algorithm operates on a MAX aR-tree, so that each node contains the maximum score value of any object contained by the node. The MAX aggregate function has properties that allows both for filtering and sorting of query outputs using a modified range search algorithm.
+
+The R-tree range search algorithm can be modified to only output objects with a score greater than some value \(s_{\min}\) by adding an additional condition to prune subtrees. The modification is based on the principle that any aR-tree node with MAX score lower than \(s_{\min}\) can be pruned from the search because the subtree cannot contain any entries that satisfy the rank condition. This is the same principle that allows pruning subtrees from the search for not intersecting with the query box because the subtree cannot contain any entries that intersect with the query box.
+
+The R-tree range search algorithm can be modified to output results in order of descending rank by dequeuing queue elements in order of descending upper score bound. The modification is based on the principle that in the queue of a range search, the highest ranked R-tree entry that has not yet been visited must be found via the highest ranked queue entry. Queue entries are ranked by the MAX score for inner node entries, and actual score for leaf node entries. The highest ranked unvisited R-tree entry can be found in the queue either as an ancestor of an inner node with the greatest MAX score, or as the leaf node entry with the greatest score. By always dequeuing the highest ranked queue entry, queue entries are processed in best-first order which guarantees that leaf entries will be visited in descending rank order.
+
+\section{Top-k joins}
 
 A basic method to perform a ranked join is performing a join then sorting the results. The problem with this method is that it requires the join to be completely evaluated before any part of the output can be produced. Joins can be computationally expensive and can produce result sets that are unnecessarily large to answer a top-k join. A method that can produce the same ranked join outputs using only a partially evaluated join would be more efficient by avoiding the cost of the full join. Such a method requires efficient navigation of the join space and must also guarantee that the join results that have not been evaluated are not part of the ranked join results.
 
@@ -129,4 +123,4 @@ With SFA, pairs of objects with high scores are found fast, and the results are 
 
 The Block-based Algorithm (BA) is similar to SFA by prioritizing objects with high scores, but instead of accessing one object at a time, it accesses inputs in blocks. An aR-tree is bulk loaded from each block. Each block is joined with all the blocks that have been accessed so far from the other input using aR-tree joins. BA keeps track of candidate top-k results, and can also use the score of the \(k^{th}\) candidate result to prune subtrees when performing each spatial join.
 
-BA is an attempt to overcome SFA's failure to quickly find spatial join results, and DFA's failure to quickly find pairs with high scores. Performing joins at block level is more efficient than performing joins one entry at a time, because indexing blocks with bulk loading which is more efficient than dynamic insertion of elements, and because joining aR-trees is more efficient than probing once per accessed element. The number of aR-tree joins per loaded block is also limited by observing the upper bound for the score of any tuple that can be produced by joining a pair of aR-trees.
+BA is an attempt to overcome SFA's failure to quickly find spatial join results, and DFA's failure to quickly find pairs with high scores. Performing joins at block level is more efficient than performing joins one entry at a time when considering the cost of processing per element. Indexing blocks with bulk loading is more efficient than dynamic insertion of each element, and joining aR-trees is more efficient than probing once per accessed element. The number of aR-tree joins per loaded block is limited by observing the upper bound for the score of any tuple that can be produced by joining a pair of aR-trees.
