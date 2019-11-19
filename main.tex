@@ -35,6 +35,10 @@
 \usepackage{amsmath}
 % Math symbols
 \usepackage{amssymb}
+% Algorithms
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
 
 \newcommand{\com}[1]{{\color{red}#1}} % supervisor comment
 
@@ -74,7 +78,7 @@ Given two sets of spatial objects \(R\) and \(S\) where each object is assigned 
 
 Graphics processors are becoming commodity hardware, and their massively parallel processing capabilities can be used to achieve high performance. It has been shown that some spatial queries can be sped up significantly with GPGPU, but little research has been made into processing top-k spatial joins (and top-k queries in general) with graphics processors.
 
-This project will attempt to uncover the feasibility of processing top-k spatial joins on GPU\@. Contributions have been made for efficient processing of top-k spatial joins in CPU environments as well as spatial joins in GPU environments. However, few contributions have been made specifically for processing top-k spatial joins on GPUs.
+This thesis will attempt to uncover the feasibility of processing top-k spatial joins on GPU\@. Contributions have been made for efficient processing of top-k spatial joins in CPU environments as well as spatial joins in GPU environments. However, few contributions have been made specifically for processing top-k spatial joins on GPUs.
 
 \chapter*{Acknowledgements}
 I wish to thank my supervisor Kjetil Nørvåg for taking the time to review this draft.
@@ -87,13 +91,14 @@ I wish to thank my supervisor Kjetil Nørvåg for taking the time to review this
 \chapter{Introduction}
 \input{chapters/introduction}
 
-\chapter{General-purpose computing on graphics processors}
+\chapter{GPGPU}
 \input{chapters/gpgpu}
 
 \chapter{Spatial Indexing}
 \input{chapters/spatial_indexing}
 
-\chapter{Top-k spatial join}
+\chapter{Ranked Queries}
+\input{chapters/ranked_queries}
 
 %\chapter{Conclusion}
 %\input{chapters/conclusion}
