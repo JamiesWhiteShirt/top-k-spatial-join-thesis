@@ -1,7 +1,7 @@
 % TODO: Use twoside for printing
 \documentclass[12pt]{report}
-% English hyphenation
-\usepackage[english]{babel}
+% English hyphenation, among other things
+\usepackage[british]{babel}
 % Use UTF-8 encoding
 \usepackage[utf8]{inputenc}
 % Better support for accented characters
@@ -28,7 +28,7 @@
 % Beautiful IBM Plex font families
 %\usepackage{plex-serif}
 \usepackage{plex-sans}
-\usepackage{plex-mono}
+%\usepackage{plex-mono}
 % Text coloring
 \usepackage{color}
 % Math blocks
@@ -57,7 +57,7 @@
     \vspace{0.5cm}
     \LARGE
     % TODO: Remove this before submission
-    DRAFT, \today
+    % DRAFT, \today
 
     \vspace{1.5cm}
 
@@ -66,22 +66,28 @@
     \vfill
 
     \large
+    TDT4501 --- Computer Science, Specialization Project
+
+    Fall 2019
+
+    \vspace{1cm}
+
     Supervisor: Kjetil Nørvåg, IDI
 
-    \vspace{1.5cm}
+    \vspace{1cm}
     Norwegian University of Science and Technology\\
     Department of Computer Science
 \end{titlepage}
 
 \chapter*{Abstract}
-Given two sets of spatial objects \(R\) and \(S\) where each object is assigned a score, a spatial join predicate (such as a distance threshold \(\epsilon\)), and an aggregate function that combines scores for two objects (such as a simple sum), the top-k spatial join operation joins \(R\) and \(S\) by the spatial predicate and returns the \(k\) pairs with the best scores according to the aggregate function. % chktex 21
+Given two sets of spatial objects \(R\) and \(S\) where each object is assigned a score, a spatial join predicate (such as a point distance threshold), and an aggregate function that combines scores for two objects (such as a simple sum), the top-k spatial join operation joins \(R\) and \(S\) by the spatial predicate and returns the \(k\) pairs with the best scores according to the aggregate function. The R-tree is a common spatial data structure that is a balanced search tree designed to accelerate spatial queries, which can be applied to evaluate spatial joins. Some methods have been proposed for the evaluation of top-k spatial joins, but they have not been explicitly designed for parallelism.
 
-Graphics processors are becoming commodity hardware, and their massively parallel processing capabilities can be used to achieve high performance. It has been shown that some spatial queries can be sped up significantly with GPGPU, but little research has been made into processing top-k spatial joins (and top-k queries in general) with graphics processors.
+Graphics processors are becoming commodity hardware, and their massively parallel processing capabilities can be used to achieve high performance. APIs such as CUDA have enabled the trend of general-purpose computing on graphics processors (GPGPU), which has become a popular way to utilize this hardware. However, special application design is required to efficiently utilize GPGPU, which requires new research to adapt to the new computing paradigm. It has been shown that some spatial queries can be sped up significantly with GPGPU, but little research has been made into processing top-k spatial joins (and top-k queries in general) with graphics processors.
 
-This thesis will attempt to uncover the feasibility of processing top-k spatial joins on GPU\@. Contributions have been made for efficient processing of top-k spatial joins in CPU environments as well as spatial joins in GPU environments. However, few contributions have been made specifically for processing top-k spatial joins on GPUs.
+This thesis covers important aspects of processing top-k spatial joins using R-trees on GPU\@. Research suggests that some existing methods have potential to be adapted for GPGPU. We deal with some of the challenges that come with adapting applications for GPGPU. We define an R-tree memory layout designed for efficient random access in global memory, a bulk loading implementation based on GPU segmented radix sort and parallel reductions, and an adaptation of the Block-based algorithm for top-k spatial joins that utilizes varying degrees of parallelism.
 
 \chapter*{Acknowledgements}
-I wish to thank my supervisor Kjetil Nørvåg for taking the time to review this draft.
+I wish to thank my supervisor Kjetil Nørvåg for this project proposition and for invaluable assistance in the writing of this thesis.
 
 \tableofcontents
 % Not particularly useful right now
@@ -94,14 +100,17 @@ I wish to thank my supervisor Kjetil Nørvåg for taking the time to review this
 \chapter{GPGPU}
 \input{chapters/gpgpu}
 
-\chapter{Spatial Indexing}
+\chapter{Spatial indexing}
 \input{chapters/spatial_indexing}
 
-\chapter{Ranked Queries}
+\chapter{Ranked queries}
 \input{chapters/ranked_queries}
 
-%\chapter{Conclusion}
-%\input{chapters/conclusion}
+\chapter{Implementation}
+\input{chapters/implementation}
+
+\chapter{Conclusions and future work}
+\input{chapters/conclusion}
 
 %\appendix
 %\chapter{Example appendix}
